@@ -1,0 +1,16 @@
+{
+  "name": "avroRegistry",
+  "version": "0.0.1",
+  "description": "Register schemas and get their transitive closure dependencies",
+  "main": "avroRegistry.js",
+  "author": "Jan Schalkamp",
+  "private": false,
+  "license": "MIT",
+  "dependencies": {
+    "js-md5": "^0.4.2",
+    "lodash": "^4.17.4"
+  },
+  "scripts": {
+    "start": "node avroRegistry.js"
+  }
+}
