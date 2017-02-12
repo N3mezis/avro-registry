@@ -1,5 +1,5 @@
 {
-  "name": "avroRegistry",
+  "name": "avro-registry",
   "version": "0.0.1",
   "description": "Register schemas and get their transitive closure dependencies",
   "main": "avroRegistry.js",
