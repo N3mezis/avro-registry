@@ -1,5 +1,4 @@
-var avro = require('avsc'),
-    lodash = require('lodash'),
+    var lodash = require('lodash'),
     md5 = require('js-md5');
 
 var AVRO_TYPES = {
@@ -35,7 +34,7 @@ var AVRO_KEYWORDS = {
     errors: true
 };
 
-module.exports = function avscRegistry() {
+module.exports = function avroRegistry() {
 
     var registry = {
         schemas: {}
