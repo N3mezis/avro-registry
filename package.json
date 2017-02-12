@@ -1,6 +1,6 @@
 {
   "name": "avro-registry",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Register schemas and get their transitive closure dependencies",
   "main": "avroRegistry.js",
   "author": "Jan Schalkamp",
