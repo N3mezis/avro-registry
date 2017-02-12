@@ -52,11 +52,11 @@ module.exports = function avroRegistry() {
             schemaStore = {
                 versions: [],
                 schemas: {},
-                getVersion: function (version) {
+                getSchema: function (version) {
+                    version = typeof version === 'undefined' ?
+                        schemaStore.versions.length - 1 : version;
+
                     return schemaStore.schemas[schemaStore.versions[version]];
-                },
-                getCurrentSchema: function () {
-                    return schemaStore.getVersion(schemaStore.versions.length - 1);
                 }
             };
             lodash.set(registry, path, schemaStore);
@@ -79,7 +79,7 @@ module.exports = function avroRegistry() {
 
     this.get = function (path, version) {
         var schemaStore = lodash.get(registry, path);
-        return typeof version === 'undefined' ? schemaStore.getCurrentSchema() : schemaStore.getVersion(version);
+        return schemaStore.getSchema(version);
     };
 
     function getHashashableSchema(schema) {
@@ -104,7 +104,7 @@ module.exports = function avroRegistry() {
         return Object.keys(dependencies).reduce(function (snapshot, name) {
             var dependentSchemaStore = lodash.get(registry, name);
 
-            lodash.set(snapshot, name, dependentSchemaStore.getCurrentSchema().schema);
+            lodash.set(snapshot, name, dependentSchemaStore.getSchema().schema);
 
             return snapshot;
         }, {});
