@@ -1,6 +1,6 @@
 var lodash = require('lodash'),
-    objectHash = require('object-hash');
-    //avro = require('avsc');
+    objectHash = require('object-hash'),
+    avro = require('avsc');
 
 var AVRO_TYPES = {
     null: true,
@@ -38,13 +38,14 @@ var AVRO_KEYWORDS = {
 var SETTINGS = {
     schemaEvolution: {
         default: 'strict',
-        values: ['strict', 'resolve']
+        strict: 'strict',
+        resolve: 'resolve'
     }
 };
 
 function setting(name, options) {
     var option = (options || {})[name] || SETTINGS[name].default;
-    var invalid = SETTINGS[name].values.indexOf(option) < 0;
+    var invalid = !SETTINGS[name][option];
 
     if(invalid) {
         throw 'Setting \'' + name + '\' does not support option \'' + option + '\'!';
@@ -55,10 +56,9 @@ function setting(name, options) {
 
 module.exports = function avroRegistry(options) {
     var registry = {
-        schemas: {},
-        settings: {
-            schemaEvolution: setting('schemaEvolution', options)
-        }
+        schemas: {}
+    }, settings = {
+        schemaEvolution: setting('schemaEvolution', options)
     }, listeners = {};
 
     this.register = function (schema) {
@@ -86,7 +86,30 @@ module.exports = function avroRegistry(options) {
 
         schemaStore.versions.push(hash);
 
-        dispatch('newSchemaVersion', schema, schemaStore.getSchema(schemaStore.version - 1));
+        dispatch('updatedSchema', schema, schemaStore.getSchema(schemaStore.version - 1));
+
+        if (settings.schemaEvolution === SETTINGS.schemaEvolution.resolve){
+            var oldSchema = schemaStore.getSchema();
+
+            if(oldSchema) {
+                var oldType = avro.parse(oldSchema.schema, {registry: oldSchema.snapshot}),
+                    newType = avro.parse(schema, {registry: schemaStore.schemas[hash].snapshot});
+
+                try {
+                    newType.createResolver(oldType);
+                    schemaStore.majorVersions[schemaStore.majorVersions.length -1] = hash;
+                    dispatch('updatedMajorSchema');
+                } catch(e) {
+                    schemaStore.majorVersions.push(hash);
+                    dispatch('newMajorSchema');
+                }
+            } else {
+                schemaStore.majorVersions.push(hash);
+                dispatch('newMajorSchema');
+            }
+        }
+
+        schemaStore.schemas[hash].majorVersion = schemaStore.majorVersions.length - 1;
 
         return schemaStore.schemas[hash];
     };
@@ -125,12 +148,18 @@ module.exports = function avroRegistry(options) {
     function initSchemaStore(registry, path) {
         var schemaStore = {
             versions: [],
+            majorVersions: [],
             schemas: {},
             getSchema: function (version) {
-                version = typeof version === 'undefined' ?
-                    schemaStore.versions.length - 1 : version;
+                var versions = settings.schemaEvolution === SETTINGS.schemaEvolution.resolve ?
+                    schemaStore.majorVersions : schemaStore.versions;
 
-                return schemaStore.schemas[schemaStore.versions[version]];
+                version = typeof version === 'undefined' ?
+                    versions.length - 1 : version;
+                version = version < 0 ?
+                    versions.length - 1 + version : version;
+
+                return schemaStore.schemas[versions[version]];
             }
         };
 
