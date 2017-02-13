@@ -1,5 +1,6 @@
-    var lodash = require('lodash'),
-    md5 = require('js-md5');
+var lodash = require('lodash'),
+    objectHash = require('object-hash');
+    //avro = require('avsc');
 
 var AVRO_TYPES = {
     null: true,
@@ -34,35 +35,46 @@ var AVRO_KEYWORDS = {
     errors: true
 };
 
-module.exports = function avroRegistry() {
+var SETTINGS = {
+    schemaEvolution: {
+        default: 'strict',
+        values: ['strict', 'resolve']
+    }
+};
 
+function setting(name, options) {
+    var option = (options || {})[name] || SETTINGS[name].default;
+    var invalid = SETTINGS[name].values.indexOf(option) < 0;
+
+    if(invalid) {
+        throw 'Setting \'' + name + '\' does not support option \'' + option + '\'!';
+    }
+
+    return option;
+}
+
+module.exports = function avroRegistry(options) {
     var registry = {
-        schemas: {}
-    };
+        schemas: {},
+        settings: {
+            schemaEvolution: setting('schemaEvolution', options)
+        }
+    }, listeners = {};
 
     this.register = function (schema) {
         var name = schema.name,
             namespace = schema.namespace,
             path = namespace ? namespace + '.' + name : name,
-            hashableSchema = getHashashableSchema(schema),
-            hash = md5(JSON.stringify(hashableSchema)),
+            hash = this.hash(schema),
             schemaStore = lodash.get(registry, path);
 
         if (!schemaStore) {
-            schemaStore = {
-                versions: [],
-                schemas: {},
-                getSchema: function (version) {
-                    version = typeof version === 'undefined' ?
-                        schemaStore.versions.length - 1 : version;
-
-                    return schemaStore.schemas[schemaStore.versions[version]];
-                }
-            };
-            lodash.set(registry, path, schemaStore);
+            schemaStore = initSchemaStore(registry, path);
+            dispatch('newSchema', schema);
         }
 
         if (schemaStore.schemas[hash]) {
+            dispatch('oldSchema', schema, schemaStore.getSchema());
             return schemaStore.schemas[hash].snapshot;
         }
 
@@ -74,13 +86,58 @@ module.exports = function avroRegistry() {
 
         schemaStore.versions.push(hash);
 
+        dispatch('newSchemaVersion', schema, schemaStore.getSchema(schemaStore.version - 1));
+
         return schemaStore.schemas[hash];
+    };
+
+    this.hash = function(schema) {
+        return  objectHash(getHashashableSchema(schema));
     };
 
     this.get = function (path, version) {
         var schemaStore = lodash.get(registry, path);
         return schemaStore.getSchema(version);
     };
+
+    this.on = function(name, callback) {
+        if(!listeners[name]) {
+            listeners[name] = [];
+        }
+
+        listeners[name].push(callback);
+
+        return function destroy() {
+            return listeners[name].splice(listeners[name].indexOf(callback), 1);
+        }
+    };
+
+    function dispatch(name) {
+        if(!listeners.name) {
+            return;
+        }
+
+        listeners[name].forEach(function(callback) {
+            callback.apply(this, this.arguments.slice(1));
+        });
+    }
+
+    function initSchemaStore(registry, path) {
+        var schemaStore = {
+            versions: [],
+            schemas: {},
+            getSchema: function (version) {
+                version = typeof version === 'undefined' ?
+                    schemaStore.versions.length - 1 : version;
+
+                return schemaStore.schemas[schemaStore.versions[version]];
+            }
+        };
+
+        lodash.set(registry, path, schemaStore);
+
+        return schemaStore;
+    }
 
     function getHashashableSchema(schema) {
         if(typeof schema !== 'object') {

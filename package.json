@@ -7,10 +7,14 @@
   "private": false,
   "license": "MIT",
   "dependencies": {
-    "js-md5": "^0.4.2",
-    "lodash": "^4.17.4"
+    "lodash": "^4.17.4",
+    "object-hash": "1.1.5"
   },
   "scripts": {
-    "start": "node avroRegistry.js"
+    "start": "node avroRegistry.js",
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "mocha": "^3.2.0"
   }
 }
