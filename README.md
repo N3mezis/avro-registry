@@ -1,4 +1,4 @@
-# avroRegistry [![Build Status](https://travis-ci.org/N3mezis/avroRegistry.svg?branch=master)](https://travis-ci.org/N3mezis/avroRegistry)
+# avroRegistry [![Build Status](https://travis-ci.org/N3mezis/avroRegistry.svg?branch=master)](https://travis-ci.org/N3mezis/avroRegistry)[![Coverage Status](https://coveralls.io/repos/github/N3mezis/avroRegistry/badge.svg?branch=master)](https://coveralls.io/github/N3mezis/avroRegistry?branch=master)
 Registry for avro schemas
 
 
