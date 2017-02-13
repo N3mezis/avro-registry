@@ -70,11 +70,11 @@ module.exports = function avroRegistry(options) {
 
         if (!schemaStore) {
             schemaStore = initSchemaStore(registry, path);
-            dispatch('newSchema', schema);
+            emit('newSchema', schema);
         }
 
         if (schemaStore.schemas[hash]) {
-            dispatch('oldSchema', schema, schemaStore.getSchema());
+            emit('oldSchema', schema, schemaStore.getSchema());
             return schemaStore.schemas[hash].snapshot;
         }
 
@@ -86,7 +86,7 @@ module.exports = function avroRegistry(options) {
 
         schemaStore.versions.push(hash);
 
-        dispatch('updatedSchema', schema, schemaStore.getSchema(schemaStore.version - 1));
+        emit('updatedSchema', schema, schemaStore.getSchema(schemaStore.version - 1));
 
         if (settings.schemaEvolution === SETTINGS.schemaEvolution.resolve){
             var oldSchema = schemaStore.getSchema();
@@ -98,14 +98,14 @@ module.exports = function avroRegistry(options) {
                 try {
                     newType.createResolver(oldType);
                     schemaStore.majorVersions[schemaStore.majorVersions.length -1] = hash;
-                    dispatch('updatedMajorSchema');
+                    emit('updatedMajorSchema');
                 } catch(e) {
                     schemaStore.majorVersions.push(hash);
-                    dispatch('newMajorSchema');
+                    emit('newMajorSchema');
                 }
             } else {
                 schemaStore.majorVersions.push(hash);
-                dispatch('newMajorSchema');
+                emit('newMajorSchema');
             }
         }
 
@@ -135,13 +135,15 @@ module.exports = function avroRegistry(options) {
         }
     };
 
-    function dispatch(name) {
-        if(!listeners.name) {
+    function emit(name) {
+        if(!listeners[name]) {
             return;
         }
 
+        var args = [].slice.call(arguments);
+
         listeners[name].forEach(function(callback) {
-            callback.apply(this, this.arguments.slice(1));
+            callback.apply(this, args.slice(1));
         });
     }
 
