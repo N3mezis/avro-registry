@@ -34,24 +34,22 @@ var schema3 = {
     ]
 };
 
-describe('avroRegistry', function() {
-    describe('events - register(strict)', function() {
-        var settings = {
-            schemaEvolution: 'strict'
-        };
+describe('events', function () {
+    var registry;
 
-        it('should emit newSchema for a first seen schema', function() {
-            var eventFired = false;
+    beforeEach(function() {
+        registry = new AvroRegistry()
+    });
 
-            var registry = new AvroRegistry(settings);
+    it('should emit newSchema for a first seen schema', function () {
+        var eventFired = false;
 
-            registry.on('newSchema', function() {
-                eventFired = true;
-            });
-
-            assert.equal(eventFired, false);
-            registry.register(schema1);
-            assert.equal(eventFired, true);
+        registry.on('newSchema', function () {
+            eventFired = true;
         });
+
+        assert.equal(eventFired, false);
+        registry.register(schema1);
+        assert.equal(eventFired, true);
     });
 });

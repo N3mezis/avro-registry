@@ -34,22 +34,22 @@ var schema3 = {
     ]
 };
 
-describe('avroRegistry', function() {
-    describe('register(strict)', function() {
-        var settings = {
-            schemaEvolution: 'strict'
-        };
+describe('register', function() {
+    var registry;
+
+    describe('strict', function() {
+        beforeEach(function() {
+            registry = new AvroRegistry({
+                schemaEvolution: 'strict'
+            })
+        });
+
 
         it('should register a new schema and set it as current', function() {
-
-            var registry = new AvroRegistry(settings);
-
             assert.equal(registry.register(schema1).schema, schema1);
         });
 
         it('should not register a schema twice', function() {
-            var registry = new AvroRegistry(settings);
-
             registry.register(schema1);
             registry.register(schema1);
 
@@ -58,8 +58,6 @@ describe('avroRegistry', function() {
         });
 
         it('should update a registered schema', function() {
-            var registry = new AvroRegistry(settings);
-
             registry.register(schema1);
             registry.register(schema2);
 
@@ -69,20 +67,18 @@ describe('avroRegistry', function() {
         });
     });
 
-    describe('register(resolve)', function() {
-        var settings = {
-            schemaEvolution: 'resolve'
-        };
+    describe('resolve', function() {
+        beforeEach(function() {
+            registry = new AvroRegistry({
+                schemaEvolution: 'resolve'
+            })
+        });
 
         it('should register a new schema and set it as current', function() {
-            var registry = new AvroRegistry(settings);
-
             assert.equal(registry.register(schema1).schema, schema1);
         });
 
         it('should not register a schema twice', function() {
-            var registry = new AvroRegistry(settings);
-
             registry.register(schema1);
             registry.register(schema1);
 
@@ -91,8 +87,6 @@ describe('avroRegistry', function() {
         });
 
         it('should update a registered schema', function() {
-            var registry = new AvroRegistry(settings);
-
             registry.register(schema1);
             registry.register(schema2);
 
@@ -102,10 +96,6 @@ describe('avroRegistry', function() {
         });
 
         it('should not bump major version on a resolvable schema', function() {
-            var eventFired = false;
-
-            var registry = new AvroRegistry(settings);
-
             var registered1 = registry.register(schema1);
             var registered2 = registry.register(schema3);
 
@@ -113,6 +103,7 @@ describe('avroRegistry', function() {
                 registered1.majorVersion,
                 registered2.majorVersion
             );
+
         });
     });
 });
