@@ -86,7 +86,7 @@ module.exports = function avroRegistry(options) {
 
         schemaStore.versions.push(hash);
 
-        emit('updatedSchema', schema, schemaStore.getSchema(schemaStore.version - 1));
+        emit('updatedSchema', schema, schemaStore.getSchema(-1));
 
         if (settings.schemaEvolution === SETTINGS.schemaEvolution.resolve){
             var oldSchema = schemaStore.getSchema();
@@ -225,6 +225,8 @@ module.exports = function avroRegistry(options) {
                         if (!customTypeSchema) {
                             throw 'Schema ' + type + ' not registered!';
                         }
+
+                        customTypeSchema = customTypeSchema.getSchema().schema;
 
                         dependencies[type] = getTransitiveDependenciesForSnapshot(
                             customTypeSchema, dependencies, customTypeSchema.name
