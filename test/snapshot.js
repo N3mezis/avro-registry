@@ -34,6 +34,11 @@ var schema3 = {
     ]
 };
 
+var schema4 = {
+    name: 'test4',
+    type: 'test2'
+}
+
 describe('snapshot', function() {
     var registry;
 
@@ -57,5 +62,16 @@ describe('snapshot', function() {
 
         assert.equal(result.snapshot[schema1.name], schema3);
         assert.notEqual(result.snapshot[schema1.name], schema1);
+    });
+
+    it('should snapshot the transitive closure of a schema', function() {
+        registry.register(schema1);
+        registry.register(schema2);
+        registry.register(schema3);
+
+        var result = registry.register(schema4);
+
+        assert.equal(result.snapshot[schema1.name], schema3);
+        assert.equal(result.snapshot[schema2.name], schema2);
     });
 });
