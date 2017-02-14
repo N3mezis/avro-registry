@@ -6,6 +6,7 @@
   "author": "Jan Schalkamp",
   "private": false,
   "license": "MIT",
+  "homepage": "https://github.com/N3mezis/avro-registry",
   "dependencies": {
     "avsc": "^4.1.11",
     "lodash": "^4.17.4",
